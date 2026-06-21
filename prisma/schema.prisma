@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mobileNumber   String        @unique @map("mobile_number") @db.VarChar(15)
+  fullName       String?       @map("full_name") @db.VarChar(255)
+  email          String?       @db.VarChar(255)
+  profilePicture String?       @map("profile_picture")
+  status         String        @default("ACTIVE") @db.VarChar(20)
+  isVerified     Boolean       @default(true) @map("is_verified")
+  lastLoginAt    DateTime?     @map("last_login_at") @db.Timestamp(6)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime      @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamp(6)
+  devices        UserDevice[]
+  sessions       UserSession[]
+
+  @@index([mobileNumber], map: "idx_users_mobile_number")
+  @@index([status], map: "idx_users_status")
+  @@map("users")
+}
+
+model UserDevice {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  deviceId        String   @map("device_id") @db.VarChar(255)
+  deviceName      String?  @map("device_name") @db.VarChar(255)
+  deviceModel     String?  @map("device_model") @db.VarChar(255)
+  operatingSystem String?  @map("operating_system") @db.VarChar(50)
+  appVersion      String?  @map("app_version") @db.VarChar(50)
+  isActive        Boolean  @default(true) @map("is_active")
+  lastSeenAt      DateTime? @map("last_seen_at") @db.Timestamp(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_devices_user_id")
+  @@index([deviceId], map: "idx_user_devices_device_id")
+  @@map("user_devices")
+}
+
+model UserSession {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  refreshToken String    @map("refresh_token")
+  deviceId     String?   @map("device_id") @db.VarChar(255)
+  ipAddress    String?   @map("ip_address") @db.VarChar(100)
+  userAgent    String?   @map("user_agent")
+  expiresAt    DateTime  @map("expires_at") @db.Timestamp(6)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamp(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_sessions_user_id")
+  @@index([expiresAt], map: "idx_user_sessions_expires_at")
+  @@index([refreshToken], map: "idx_user_sessions_refresh_token")
+  @@map("user_sessions")
+}
