@@ -43,6 +43,113 @@
 - Event schemas are versioned independently with `event_version`.
 - Mobile clients should ignore unknown response fields.
 
+## Endpoint and Parameter Index
+
+This section is the implementation-facing endpoint map. Detailed request and response schemas are defined in the service sections that follow.
+
+### Auth Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Send OTP | `POST` | `/v1/auth/otp/send` | None | None | `mobile_number` | `Content-Type` | Public |
+| Verify OTP | `POST` | `/v1/auth/otp/verify` | None | None | `challenge_id`, `otp`, `full_name`, `device_id`, `device_name`, `device_model`, `operating_system`, `app_version` | `Content-Type` | Public |
+| Refresh Token | `POST` | `/v1/auth/token/refresh` | None | None | `refresh_token` | `Content-Type` | Public |
+| Logout | `POST` | `/v1/auth/logout` | None | None | `refresh_token` | `Authorization`, `Content-Type` | Bearer JWT |
+
+### User Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Get Current User | `GET` | `/v1/users/me` | None | None | None | `Authorization` | Bearer JWT |
+| Get User By ID | `GET` | `/v1/users/{user_id}` | `user_id` | None | None | `Authorization` | Bearer JWT or internal service auth |
+| Update Current User | `PATCH` | `/v1/users/me` | None | None | `display_name`, `email`, `profile_picture` | `Authorization`, `Content-Type` | Bearer JWT |
+
+### Bank Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Get My Account | `GET` | `/v1/bank/accounts/me` | None | None | None | `Authorization` | Bearer JWT |
+| Get My UPI IDs | `GET` | `/v1/bank/upi-ids/me` | None | None | None | `Authorization` | Bearer JWT |
+| Resolve UPI ID | `GET` | `/v1/bank/upi-ids/{upi_id}/resolve` | `upi_id` | None | None | `Authorization` | Bearer JWT |
+
+### Ledger Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Get Balance | `GET` | `/v1/ledger/balance` | None | None | None | `Authorization` | Bearer JWT |
+| Get Ledger Entries | `GET` | `/v1/ledger/entries` | None | `cursor`, `limit`, `from`, `to` | None | `Authorization` | Bearer JWT |
+
+### Payment Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Send Money | `POST` | `/v1/payments/send` | None | None | `payee_upi_id`, `amount`, `currency`, `note` | `Authorization`, `Content-Type`, `Idempotency-Key` | Bearer JWT |
+| Request Money | `POST` | `/v1/payments/requests` | None | None | `payer_upi_id`, `amount`, `currency`, `note`, `expires_at` | `Authorization`, `Content-Type`, `Idempotency-Key` | Bearer JWT |
+| Approve Request | `POST` | `/v1/payments/requests/{request_id}/approve` | `request_id` | None | None | `Authorization`, `Idempotency-Key` | Bearer JWT |
+| Decline Request | `POST` | `/v1/payments/requests/{request_id}/decline` | `request_id` | None | None | `Authorization` | Bearer JWT |
+| QR Preview | `POST` | `/v1/payments/qr/preview` | None | None | `qr_payload` | `Authorization`, `Content-Type` | Bearer JWT |
+| Pay QR | `POST` | `/v1/payments/qr/pay` | None | None | `qr_payload`, `amount`, `note` | `Authorization`, `Content-Type`, `Idempotency-Key` | Bearer JWT |
+| Get Payment | `GET` | `/v1/payments/{payment_id}` | `payment_id` | None | None | `Authorization` | Bearer JWT |
+
+### Transaction Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| List Transactions | `GET` | `/v1/transactions` | None | `cursor`, `limit`, `from`, `to`, `direction`, `category`, `status`, `counterparty_upi_id` | None | `Authorization` | Bearer JWT |
+| Get Transaction | `GET` | `/v1/transactions/{transaction_id}` | `transaction_id` | None | None | `Authorization` | Bearer JWT |
+| Update Transaction Category | `PATCH` | `/v1/transactions/{transaction_id}/category` | `transaction_id` | None | `category` | `Authorization`, `Content-Type` | Bearer JWT |
+
+### Goals and Analytics Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Create Goal | `POST` | `/v1/goals` | None | None | `name`, `target_amount`, `currency`, `target_date` | `Authorization`, `Content-Type` | Bearer JWT |
+| List Goals | `GET` | `/v1/goals` | None | `status`, `cursor`, `limit` | None | `Authorization` | Bearer JWT |
+| Get Goal | `GET` | `/v1/goals/{goal_id}` | `goal_id` | None | None | `Authorization` | Bearer JWT |
+| Update Goal | `PATCH` | `/v1/goals/{goal_id}` | `goal_id` | None | `name`, `target_amount`, `target_date`, `status` | `Authorization`, `Content-Type` | Bearer JWT |
+| Complete Goal | `POST` | `/v1/goals/{goal_id}/complete` | `goal_id` | None | None | `Authorization` | Bearer JWT |
+| Spending Summary | `GET` | `/v1/analytics/spending-summary` | None | `from`, `to`, `group_by` | None | `Authorization` | Bearer JWT |
+
+### Notification Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| List Notifications | `GET` | `/v1/notifications` | None | `cursor`, `limit`, `status` | None | `Authorization` | Bearer JWT |
+| Mark Notification Read | `POST` | `/v1/notifications/{notification_id}/read` | `notification_id` | None | None | `Authorization` | Bearer JWT |
+
+### AI Service
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| AI Chat | `POST` | `/v1/ai/chat` | None | None | `message`, `conversation_id`, `context_window_days` | `Authorization`, `Content-Type` | Bearer JWT |
+| List AI Insights | `GET` | `/v1/ai/insights` | None | `type`, `cursor`, `limit` | None | `Authorization` | Bearer JWT |
+| Get AI Insight | `GET` | `/v1/ai/insights/{insight_id}` | `insight_id` | None | None | `Authorization` | Bearer JWT |
+| Generate AI Insights | `POST` | `/v1/ai/insights/generate` | None | None | `insight_types`, `window_days` | `Authorization`, `Content-Type` | Bearer JWT |
+
+### Admin APIs
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Grant Initial Balance | `POST` | `/v1/admin/users/{user_id}/initial-balance` | `user_id` | None | `amount`, `currency`, `reason` | `Authorization`, `Content-Type`, `Idempotency-Key` | Admin JWT |
+| Search Payments | `GET` | `/v1/admin/payments` | None | `status`, `user_id`, `from`, `to`, `cursor`, `limit` | None | `Authorization` | Admin JWT |
+| Ledger Reconciliation | `GET` | `/v1/admin/ledger/reconciliation` | None | `from`, `to`, `status` | None | `Authorization` | Admin JWT |
+| Dead Letter Events | `GET` | `/v1/admin/events/dead-letter` | None | `domain`, `event_type`, `cursor`, `limit` | None | `Authorization` | Admin JWT |
+
+### Internal Service APIs
+
+| Endpoint Name | Method | Path | Path Params | Query Params | Body Params | Required Headers | Auth |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Ensure User | `POST` | `/internal/users/ensure` | None | None | `mobile_number`, `full_name` | `X-Service-Authorization`, `Content-Type` | Service auth |
+| Internal User Lookup | `GET` | `/internal/users/{user_id}` | `user_id` | None | None | `X-Service-Authorization` | Service auth |
+| Create Bank Account | `POST` | `/internal/bank/accounts` | None | None | `user_id`, `initial_balance_policy` | `X-Service-Authorization`, `Content-Type` | Service auth |
+| Internal Account Lookup | `GET` | `/internal/bank/accounts/{account_id}` | `account_id` | None | None | `X-Service-Authorization` | Service auth |
+| Internal UPI Resolve | `GET` | `/internal/bank/upi-ids/{upi_id}/resolve` | `upi_id` | None | None | `X-Service-Authorization` | Service auth |
+| Post Ledger Transfer | `POST` | `/internal/ledger/postings/transfer` | None | None | `payer_account_id`, `payee_account_id`, `amount`, `currency`, `payment_id`, `idempotency_key` | `X-Service-Authorization`, `Content-Type` | Service auth |
+| Post Opening Balance | `POST` | `/internal/ledger/postings/opening-balance` | None | None | `account_id`, `amount`, `currency`, `reason`, `idempotency_key` | `X-Service-Authorization`, `Content-Type` | Service auth |
+| Internal Transaction Search | `POST` | `/internal/transactions/search` | None | None | `user_id`, `filters`, `limit`, `cursor` | `X-Service-Authorization`, `Content-Type` | Service auth |
+| Internal Analytics Features | `GET` | `/internal/analytics/users/{user_id}/features` | `user_id` | `from`, `to` | None | `X-Service-Authorization` | Service auth |
+| Internal AI Categorize | `POST` | `/internal/ai/categorize` | None | None | `user_id`, `transaction_ids` | `X-Service-Authorization`, `Content-Type` | Service auth |
+
 ## 5. Standard Success Envelope
 
 | Field | Type | Description |
@@ -636,4 +743,3 @@ Admin APIs require admin role and audit logging.
 | Display name | 2 to 120 characters, normalized whitespace. |
 | Note | Max 255 characters, sanitized for display. |
 | Idempotency key | 16 to 128 characters, unique per user and operation. |
-

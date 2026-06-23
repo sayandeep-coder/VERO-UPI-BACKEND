@@ -21,10 +21,96 @@ model User {
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamp(6)
   devices        UserDevice[]
   sessions       UserSession[]
+  bankAccounts   BankAccount[]
+  upiIds         UpiId[]
 
   @@index([mobileNumber], map: "idx_users_mobile_number")
   @@index([status], map: "idx_users_status")
   @@map("users")
+}
+
+model BankAccount {
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String                  @map("user_id") @db.Uuid
+  accountNumber    String                  @unique @map("account_number") @db.VarChar(20)
+  ifscCode         String                  @map("ifsc_code") @db.VarChar(20)
+  bankName         String                  @default("VERO BANK") @map("bank_name") @db.VarChar(100)
+  accountType      String                  @default("SAVINGS") @map("account_type") @db.VarChar(20)
+  currentBalance   Decimal                 @default(0.00) @map("current_balance") @db.Decimal(18, 2)
+  availableBalance Decimal                 @default(0.00) @map("available_balance") @db.Decimal(18, 2)
+  currency         String                  @default("INR") @db.VarChar(10)
+  isPrimary        Boolean                 @default(true) @map("is_primary")
+  status           String                  @default("ACTIVE") @db.VarChar(20)
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime                @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt        DateTime?               @map("deleted_at") @db.Timestamp(6)
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upiIds           UpiId[]
+  limits           AccountLimit[]
+  balanceHistory   AccountBalanceHistory[]
+
+  @@index([userId], map: "idx_bank_accounts_user_id")
+  @@index([accountNumber], map: "idx_bank_accounts_account_number")
+  @@index([status], map: "idx_bank_accounts_status")
+  @@map("bank_accounts")
+}
+
+model UpiId {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  bankAccountId String      @map("bank_account_id") @db.Uuid
+  upiId         String      @unique @map("upi_id") @db.VarChar(255)
+  isPrimary     Boolean     @default(true) @map("is_primary")
+  status        String      @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt     DateTime?   @map("deleted_at") @db.Timestamp(6)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_upi_ids_user_id")
+  @@index([bankAccountId], map: "idx_upi_ids_bank_account_id")
+  @@index([upiId], map: "idx_upi_ids_upi_id")
+  @@map("upi_ids")
+}
+
+model AccountLimit {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String      @map("user_id") @db.Uuid
+  bankAccountId     String      @map("bank_account_id") @db.Uuid
+  dailyLimit        Decimal     @default(100000.00) @map("daily_limit") @db.Decimal(18, 2)
+  monthlyLimit      Decimal     @default(1000000.00) @map("monthly_limit") @db.Decimal(18, 2)
+  dailyUsedAmount   Decimal     @default(0.00) @map("daily_used_amount") @db.Decimal(18, 2)
+  monthlyUsedAmount Decimal     @default(0.00) @map("monthly_used_amount") @db.Decimal(18, 2)
+  currency          String      @default("INR") @db.VarChar(10)
+  status            String      @default("ACTIVE") @db.VarChar(20)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
+  bankAccount       BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_account_limits_user_id")
+  @@index([bankAccountId], map: "idx_account_limits_bank_account_id")
+  @@map("account_limits")
+}
+
+model AccountBalanceHistory {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String      @map("user_id") @db.Uuid
+  bankAccountId    String      @map("bank_account_id") @db.Uuid
+  previousBalance  Decimal     @map("previous_balance") @db.Decimal(18, 2)
+  currentBalance   Decimal     @map("current_balance") @db.Decimal(18, 2)
+  availableBalance Decimal     @map("available_balance") @db.Decimal(18, 2)
+  changeAmount     Decimal     @map("change_amount") @db.Decimal(18, 2)
+  changeType       String      @map("change_type") @db.VarChar(20)
+  referenceId      String?     @map("reference_id") @db.Uuid
+  referenceType    String?     @map("reference_type") @db.VarChar(40)
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_account_balance_history_user_id")
+  @@index([bankAccountId], map: "idx_account_balance_history_bank_account_id")
+  @@index([createdAt], map: "idx_account_balance_history_created_at")
+  @@map("account_balance_history")
 }
 
 model UserDevice {

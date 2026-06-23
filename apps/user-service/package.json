@@ -16,6 +16,7 @@
     "@vero/shared-errors": "workspace:*",
     "@vero/shared-http": "workspace:*",
     "@vero/shared-logger": "workspace:*",
+    "@vero/shared-types": "workspace:*",
     "@vero/shared-validation": "workspace:*"
   }
 }

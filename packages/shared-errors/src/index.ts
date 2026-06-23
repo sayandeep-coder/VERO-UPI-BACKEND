@@ -3,7 +3,7 @@ export type ErrorDetails = Record<string, unknown>;
 export class AppError extends Error {
   public readonly code: string;
   public readonly httpStatus: number;
-  public readonly details?: ErrorDetails;
+  public readonly details: ErrorDetails | undefined;
   public readonly isOperational = true;
 
   public constructor(code: string, message: string, httpStatus = 500, details?: ErrorDetails) {

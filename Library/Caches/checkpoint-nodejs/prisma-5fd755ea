@@ -1,0 +1,53 @@
+{
+  "last_reminder": 1782102348038,
+  "cached_at": 1782102243223,
+  "version": "6.19.3",
+  "cli_path": "/Users/sayandeep/VERO-UPI-BACKEND/node_modules/prisma/build/index.js",
+  "output": {
+    "product": "prisma",
+    "previous_version": "6.19.3",
+    "checkpoint_version": 4,
+    "local_timestamp_without_timezone": "2026-06-22T09:54:00Z",
+    "current_version": "7.8.0",
+    "current_release_date": 1776867418,
+    "client_event_id": "5eef13fa-8edb-4027-8d96-ddffe61cc20a",
+    "current_download_url": "https://github.com/prisma/prisma",
+    "package": "prisma",
+    "release_tag": "latest",
+    "install_command": "npm install --save-dev prisma",
+    "schema_providers": [
+      "postgresql"
+    ],
+    "schema_preview_features": [],
+    "schema_generators_providers": [
+      "prisma-client-js"
+    ],
+    "current_changelog_url": "https://github.com/prisma/prisma",
+    "outdated": true,
+    "project_website": "https://prisma.io",
+    "alerts": []
+  },
+  "product": "prisma",
+  "cli_install_type": "local",
+  "local_timestamp": "2026-06-22T09:55:47+05:30",
+  "project_hash": "1c2c2026",
+  "cli_path_hash": "5fd755ea",
+  "endpoint": "https://checkpoint.prisma.io",
+  "arch": "arm64",
+  "os": "darwin",
+  "node_version": "v22.19.0",
+  "command": "generate",
+  "schema_providers": [
+    "postgresql"
+  ],
+  "schema_preview_features": [],
+  "schema_generators_providers": [
+    "prisma-client-js"
+  ],
+  "cache_file": "/Users/sayandeep/VERO-UPI-BACKEND/Library/Caches/checkpoint-nodejs/prisma-5fd755ea",
+  "cache_duration": 43200000,
+  "remind_duration": 172800000,
+  "timeout": 5000,
+  "unref": true,
+  "child_path": "/Users/sayandeep/VERO-UPI-BACKEND/node_modules/.pnpm/prisma@6.19.3_typescript@5.9.3/node_modules/prisma/build/child"
+}

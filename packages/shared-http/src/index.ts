@@ -2,6 +2,7 @@ import { AppError } from "@vero/shared-errors";
 import type { Logger } from "@vero/shared-logger";
 import cors from "cors";
 import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
 import express, { type NextFunction, type Request, type RequestHandler, type Response, type Router } from "express";
 import helmet from "helmet";
 
@@ -17,7 +18,7 @@ export const asyncHandler = (handler: RequestHandler): RequestHandler => {
   };
 };
 
-export const createHttpService = ({ serviceName, logger, router }: HttpServiceOptions) => {
+export const createHttpService = ({ serviceName, logger, router }: HttpServiceOptions): express.Express => {
   const app = express();
 
   app.disable("x-powered-by");
@@ -81,7 +82,7 @@ export const createHttpService = ({ serviceName, logger, router }: HttpServiceOp
   return app;
 };
 
-export const startHttpServer = (app: express.Express, port: number, logger: Logger) => {
+export const startHttpServer = (app: express.Express, port: number, logger: Logger): Server => {
   const server = app.listen(port, () => {
     logger.info({ port }, "HTTP service started");
   });

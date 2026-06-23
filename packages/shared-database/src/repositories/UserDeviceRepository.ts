@@ -23,28 +23,59 @@ export class UserDeviceRepository {
       }
     });
 
+    const mutableDeviceData: {
+      deviceName?: string | null;
+      deviceModel?: string | null;
+      operatingSystem?: string | null;
+      appVersion?: string | null;
+      isActive: true;
+      lastSeenAt: Date;
+    } = {
+      isActive: true,
+      lastSeenAt: input.lastSeenAt ?? new Date()
+    };
+
+    const createDeviceData: {
+      userId: string;
+      deviceId: string;
+      deviceName?: string | null;
+      deviceModel?: string | null;
+      operatingSystem?: string | null;
+      appVersion?: string | null;
+      lastSeenAt: Date;
+    } = {
+      userId: input.userId,
+      deviceId: input.deviceId,
+      lastSeenAt: input.lastSeenAt ?? new Date()
+    };
+
+    if (input.deviceName !== undefined) {
+      mutableDeviceData.deviceName = input.deviceName;
+      createDeviceData.deviceName = input.deviceName;
+    }
+
+    if (input.deviceModel !== undefined) {
+      mutableDeviceData.deviceModel = input.deviceModel;
+      createDeviceData.deviceModel = input.deviceModel;
+    }
+
+    if (input.operatingSystem !== undefined) {
+      mutableDeviceData.operatingSystem = input.operatingSystem;
+      createDeviceData.operatingSystem = input.operatingSystem;
+    }
+
+    if (input.appVersion !== undefined) {
+      mutableDeviceData.appVersion = input.appVersion;
+      createDeviceData.appVersion = input.appVersion;
+    }
+
     const device = existing
       ? await this.db.userDevice.update({
           where: { id: existing.id },
-          data: {
-            deviceName: input.deviceName,
-            deviceModel: input.deviceModel,
-            operatingSystem: input.operatingSystem,
-            appVersion: input.appVersion,
-            isActive: true,
-            lastSeenAt: input.lastSeenAt ?? new Date()
-          }
+          data: mutableDeviceData
         })
       : await this.db.userDevice.create({
-          data: {
-            userId: input.userId,
-            deviceId: input.deviceId,
-            deviceName: input.deviceName,
-            deviceModel: input.deviceModel,
-            operatingSystem: input.operatingSystem,
-            appVersion: input.appVersion,
-            lastSeenAt: input.lastSeenAt ?? new Date()
-          }
+          data: createDeviceData
         });
 
     return toUserDevice(device);

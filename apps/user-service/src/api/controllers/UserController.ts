@@ -1,6 +1,6 @@
 import { asyncHandler } from "@vero/shared-http";
 import { parseOrThrow, z } from "@vero/shared-validation";
-import type { Request, Response } from "express";
+import type { Request, RequestHandler, Response } from "express";
 import type { UserProfileService } from "../../application/services/UserProfileService.js";
 
 const getUserParamsSchema = z.object({
@@ -10,7 +10,7 @@ const getUserParamsSchema = z.object({
 export class UserController {
   public constructor(private readonly userProfileService: UserProfileService) {}
 
-  public getById = asyncHandler(async (request: Request, response: Response) => {
+  public getById: RequestHandler = asyncHandler(async (request: Request, response: Response) => {
     const params = parseOrThrow(getUserParamsSchema, request.params);
     const user = await this.userProfileService.getProfile({ userId: params.userId });
 

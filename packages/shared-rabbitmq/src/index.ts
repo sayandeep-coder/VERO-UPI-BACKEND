@@ -1,7 +1,7 @@
-import amqp, { type Channel, type Connection, type Options } from "amqplib";
+import amqp, { type Channel, type ChannelModel, type Options } from "amqplib";
 
 export interface RabbitMqConnection {
-  connection: Connection;
+  connection: ChannelModel;
   channel: Channel;
 }
 

@@ -20,13 +20,21 @@ export class UserRepository {
   public constructor(private readonly db: DatabaseClient) {}
 
   public async create(input: CreateUserInput): Promise<User> {
+    const data: {
+      mobileNumber: string;
+      fullName?: string | null;
+      email?: string | null;
+      profilePicture?: string | null;
+    } = {
+      mobileNumber: input.mobileNumber
+    };
+
+    if (input.fullName !== undefined) data.fullName = input.fullName;
+    if (input.email !== undefined) data.email = input.email;
+    if (input.profilePicture !== undefined) data.profilePicture = input.profilePicture;
+
     const user = await this.db.user.create({
-      data: {
-        mobileNumber: input.mobileNumber,
-        fullName: input.fullName,
-        email: input.email,
-        profilePicture: input.profilePicture
-      }
+      data
     });
 
     return toUser(user);

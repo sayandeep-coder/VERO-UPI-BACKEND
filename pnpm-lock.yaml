@@ -126,21 +126,48 @@ importers:
       '@vero/shared-logger':
         specifier: workspace:*
         version: link:../../packages/shared-logger
+      '@vero/shared-redis':
+        specifier: workspace:*
+        version: link:../../packages/shared-redis
+      '@vero/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       '@vero/shared-validation':
         specifier: workspace:*
         version: link:../../packages/shared-validation
 
   apps/bank-service:
     dependencies:
+      '@prisma/client':
+        specifier: ^6.1.0
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@vero/shared-auth':
+        specifier: workspace:*
+        version: link:../../packages/shared-auth
       '@vero/shared-config':
         specifier: workspace:*
         version: link:../../packages/shared-config
+      '@vero/shared-database':
+        specifier: workspace:*
+        version: link:../../packages/shared-database
+      '@vero/shared-errors':
+        specifier: workspace:*
+        version: link:../../packages/shared-errors
       '@vero/shared-http':
         specifier: workspace:*
         version: link:../../packages/shared-http
       '@vero/shared-logger':
         specifier: workspace:*
         version: link:../../packages/shared-logger
+      '@vero/shared-rabbitmq':
+        specifier: workspace:*
+        version: link:../../packages/shared-rabbitmq
+      '@vero/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      '@vero/shared-validation':
+        specifier: workspace:*
+        version: link:../../packages/shared-validation
 
   apps/ledger-service:
     dependencies:
@@ -207,6 +234,9 @@ importers:
       '@vero/shared-logger':
         specifier: workspace:*
         version: link:../../packages/shared-logger
+      '@vero/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       '@vero/shared-validation':
         specifier: workspace:*
         version: link:../../packages/shared-validation
