@@ -23,6 +23,12 @@ model User {
   sessions       UserSession[]
   bankAccounts   BankAccount[]
   upiIds         UpiId[]
+  ledgerAccounts LedgerAccount[]
+  sentPayments   Payment[] @relation("PaymentSender")
+  receivedPayments Payment[] @relation("PaymentReceiver")
+  transactions   Transaction[]
+  notifications  Notification[]
+  notificationPreference NotificationPreference?
 
   @@index([mobileNumber], map: "idx_users_mobile_number")
   @@index([status], map: "idx_users_status")
@@ -48,6 +54,9 @@ model BankAccount {
   upiIds           UpiId[]
   limits           AccountLimit[]
   balanceHistory   AccountBalanceHistory[]
+  ledgerAccounts   LedgerAccount[]
+  sentPayments      Payment[] @relation("PaymentSenderBankAccount")
+  receivedPayments  Payment[] @relation("PaymentReceiverBankAccount")
 
   @@index([userId], map: "idx_bank_accounts_user_id")
   @@index([accountNumber], map: "idx_bank_accounts_account_number")
@@ -111,6 +120,153 @@ model AccountBalanceHistory {
   @@index([bankAccountId], map: "idx_account_balance_history_bank_account_id")
   @@index([createdAt], map: "idx_account_balance_history_created_at")
   @@map("account_balance_history")
+}
+
+model LedgerAccount {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String?       @map("user_id") @db.Uuid
+  bankAccountId String?       @map("bank_account_id") @db.Uuid
+  accountType   String        @map("account_type") @db.VarChar(50)
+  accountName   String        @map("account_name") @db.VarChar(255)
+  status        String        @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime      @default(now()) @map("updated_at") @db.Timestamp(6)
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  bankAccount   BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  entries       LedgerEntry[]
+
+  @@index([userId], map: "idx_ledger_accounts_user_id")
+  @@index([bankAccountId], map: "idx_ledger_accounts_bank_account_id")
+  @@index([accountType], map: "idx_ledger_accounts_account_type")
+  @@map("ledger_accounts")
+}
+
+model LedgerTransaction {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referenceType String        @map("reference_type") @db.VarChar(50)
+  referenceId   String?       @map("reference_id") @db.Uuid
+  description   String?
+  status        String        @default("PENDING") @db.VarChar(20)
+  totalAmount   Decimal       @map("total_amount") @db.Decimal(18, 2)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime      @default(now()) @map("updated_at") @db.Timestamp(6)
+  entries       LedgerEntry[]
+  payments      Payment[]
+
+  @@index([referenceType], map: "idx_ledger_transactions_reference_type")
+  @@index([referenceId], map: "idx_ledger_transactions_reference_id")
+  @@index([status], map: "idx_ledger_transactions_status")
+  @@map("ledger_transactions")
+}
+
+model Payment {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentReference      String             @unique @map("payment_reference") @db.VarChar(50)
+  senderUserId          String             @map("sender_user_id") @db.Uuid
+  receiverUserId        String             @map("receiver_user_id") @db.Uuid
+  senderBankAccountId   String             @map("sender_bank_account_id") @db.Uuid
+  receiverBankAccountId String             @map("receiver_bank_account_id") @db.Uuid
+  senderUpiId           String             @map("sender_upi_id") @db.VarChar(255)
+  receiverUpiId         String             @map("receiver_upi_id") @db.VarChar(255)
+  amount                Decimal            @db.Decimal(18, 2)
+  remarks               String?            @db.VarChar(255)
+  paymentType           String             @default("P2P") @map("payment_type") @db.VarChar(30)
+  status                String             @default("PENDING") @db.VarChar(20)
+  ledgerTransactionId   String?            @map("ledger_transaction_id") @db.Uuid
+  initiatedAt           DateTime           @default(now()) @map("initiated_at") @db.Timestamp(6)
+  completedAt           DateTime?          @map("completed_at") @db.Timestamp(6)
+  failedAt              DateTime?          @map("failed_at") @db.Timestamp(6)
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime           @default(now()) @map("updated_at") @db.Timestamp(6)
+  senderUser            User               @relation("PaymentSender", fields: [senderUserId], references: [id])
+  receiverUser          User               @relation("PaymentReceiver", fields: [receiverUserId], references: [id])
+  senderBankAccount     BankAccount        @relation("PaymentSenderBankAccount", fields: [senderBankAccountId], references: [id])
+  receiverBankAccount   BankAccount        @relation("PaymentReceiverBankAccount", fields: [receiverBankAccountId], references: [id])
+  ledgerTransaction     LedgerTransaction? @relation(fields: [ledgerTransactionId], references: [id])
+  transactions          Transaction[]
+
+  @@index([senderUserId], map: "idx_payments_sender_user")
+  @@index([receiverUserId], map: "idx_payments_receiver_user")
+  @@index([paymentReference], map: "idx_payments_reference")
+  @@index([status], map: "idx_payments_status")
+  @@map("payments")
+}
+
+model Transaction {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId            String   @map("payment_id") @db.Uuid
+  userId               String   @map("user_id") @db.Uuid
+  transactionDirection String   @map("transaction_direction") @db.VarChar(10)
+  counterpartyName     String?  @map("counterparty_name") @db.VarChar(255)
+  counterpartyUpiId    String?  @map("counterparty_upi_id") @db.VarChar(255)
+  amount               Decimal  @db.Decimal(18, 2)
+  transactionCategory  String?  @map("transaction_category") @db.VarChar(50)
+  transactionStatus    String   @map("transaction_status") @db.VarChar(20)
+  transactionDate      DateTime @default(now()) @map("transaction_date") @db.Timestamp(6)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  payment              Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "idx_transactions_user")
+  @@index([paymentId], map: "idx_transactions_payment")
+  @@index([transactionDirection], map: "idx_transactions_direction")
+  @@index([transactionDate], map: "idx_transactions_date")
+  @@map("transactions")
+}
+
+model NotificationPreference {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                     String   @unique @map("user_id") @db.Uuid
+  pushEnabled                Boolean  @default(true) @map("push_enabled")
+  paymentNotifications       Boolean  @default(true) @map("payment_notifications")
+  moneyReceivedNotifications Boolean  @default(true) @map("money_received_notifications")
+  moneySentNotifications     Boolean  @default(true) @map("money_sent_notifications")
+  securityNotifications      Boolean  @default(true) @map("security_notifications")
+  promotionalNotifications   Boolean  @default(false) @map("promotional_notifications")
+  goalNotifications          Boolean  @default(true) @map("goal_notifications")
+  aiInsightNotifications     Boolean  @default(true) @map("ai_insight_notifications")
+  createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                  DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model Notification {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  notificationType String    @map("notification_type") @db.VarChar(50)
+  title            String    @db.VarChar(255)
+  message          String
+  metadata         Json?
+  isRead           Boolean   @default(false) @map("is_read")
+  readAt           DateTime? @map("read_at") @db.Timestamp(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_notifications_user_id")
+  @@index([isRead], map: "idx_notifications_is_read")
+  @@index([createdAt], map: "idx_notifications_created_at")
+  @@map("notifications")
+}
+
+model LedgerEntry {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ledgerTransactionId String            @map("ledger_transaction_id") @db.Uuid
+  ledgerAccountId     String            @map("ledger_account_id") @db.Uuid
+  entryType           String            @map("entry_type") @db.VarChar(10)
+  amount              Decimal           @db.Decimal(18, 2)
+  balanceBefore       Decimal           @map("balance_before") @db.Decimal(18, 2)
+  balanceAfter        Decimal           @map("balance_after") @db.Decimal(18, 2)
+  description         String?
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamp(6)
+  ledgerTransaction   LedgerTransaction @relation(fields: [ledgerTransactionId], references: [id], onDelete: Cascade)
+  ledgerAccount       LedgerAccount     @relation(fields: [ledgerAccountId], references: [id], onDelete: Cascade)
+
+  @@index([ledgerTransactionId], map: "idx_ledger_entries_transaction_id")
+  @@index([ledgerAccountId], map: "idx_ledger_entries_account_id")
+  @@index([entryType], map: "idx_ledger_entries_entry_type")
+  @@map("ledger_entries")
 }
 
 model UserDevice {

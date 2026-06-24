@@ -11,8 +11,15 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "@vero/shared-auth": "workspace:*",
     "@vero/shared-config": "workspace:*",
+    "@vero/shared-database": "workspace:*",
+    "@vero/shared-errors": "workspace:*",
     "@vero/shared-http": "workspace:*",
-    "@vero/shared-logger": "workspace:*"
+    "@vero/shared-logger": "workspace:*",
+    "@vero/shared-rabbitmq": "workspace:*",
+    "@vero/shared-types": "workspace:*",
+    "@vero/shared-validation": "workspace:*"
   }
 }

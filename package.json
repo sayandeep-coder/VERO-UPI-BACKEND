@@ -9,6 +9,7 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "test:audit": "node tests/e2e/run-audit.mjs",
     "prisma:generate": "prisma generate",
     "clean": "turbo run clean && rm -rf node_modules"
   },
